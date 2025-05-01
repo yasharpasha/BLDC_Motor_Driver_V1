@@ -1,5 +1,6 @@
 // MOSFET pin tanımları
-
+#include <avr/io.h>
+#include <util/delay.h>
 #define A_H 3   // Faz A üst MOSFET (PWM)
 #define A_L 2   // Faz A alt MOSFET
 #define B_H 9   // Faz B üst MOSFET (PWM)
@@ -38,17 +39,17 @@ void setup() {
 void loop() {
   // Sürekli aynı yönde 6 adımlı komütasyon döngüsü
   step1();
-  delay(1000);
+  _delay_ms(4);
   step2();
-  delay(1000);
+  _delay_ms(4);
   step3();
-  delay(1000);
+  _delay_ms(4);
   step4();
-  delay(1000);
+  _delay_ms(4);
   step5();
-  delay(1000);
+  _delay_ms(4);
   step6();
-  delay(1000);
+  _delay_ms(4);
 }
 
 // Tüm MOSFET'leri kapatma fonksiyonu
@@ -72,7 +73,7 @@ void step1() {           // A+ B-
 }
 
 void step2() {           // A+ C-
-  OCR2B = 0;             //analogWrite(A_H, pwmDuty);
+  OCR2B = pwmDuty;       //analogWrite(A_H, pwmDuty);
   PORTB |= (1 << PB4);   //digitalWrite(C_L, HIGH);
   PORTD |= (1 << PD2);   //digitalWrite(A_L, HIGH);
   PORTB &= ~(1 << PB0);  //digitalWrite(B_L, LOW);
@@ -98,22 +99,22 @@ void step4() {           // B+ A-
   OCR1B = 0;             //analogWrite(C_H, 0);
 }
 
-void step5() {  // C+ A-
-  //analogWrite(C_H, pwmDuty);
-  //digitalWrite(A_L, HIGH);
-  //digitalWrite(B_L, LOW);
-  //digitalWrite(C_L, HIGH);
-  //analogWrite(A_H, 0);
-  //analogWrite(B_H, 0);
+void step5() {           // C+ A-
+  OCR1B = pwmDuty;       //analogWrite(C_H, pwmDuty);
+  PORTD |= (1 << PD2);   //digitalWrite(A_L, HIGH);
+  PORTB &= ~(1 << PB0);  //digitalWrite(B_L, LOW);
+  PORTB |= (1 << PB4);   //digitalWrite(C_L, HIGH);
+  OCR2B = 0;             //analogWrite(A_H, 0);
+  OCR1A = 0;             //analogWrite(B_H, 0);
 }
 
-void step6() {  // C+ B-
-  //analogWrite(C_H, pwmDuty);
-  //digitalWrite(B_L, HIGH);
-  //digitalWrite(A_L, LOW);
-  //digitalWrite(C_L, HIGH);
-  //analogWrite(A_H, 0);
-  //analogWrite(B_H, 0);
+void step6() {           // C+ B-
+  OCR1B = pwmDuty;       //analogWrite(C_H, pwmDuty);
+  PORTB |= (1 << PB0);   //digitalWrite(B_L, HIGH);
+  PORTD &= ~(1 << PD2);  //digitalWrite(A_L, LOW);
+  PORTB |= (1 << PB4);   //digitalWrite(C_L, HIGH);
+  OCR2B = 0;             //analogWrite(A_H, 0);
+  OCR1A = 0;             //analogWrite(B_H, 0);
 }
 /* On each step we know that the next 0 cross will be rising or falling and if it will be
    on coil A, B or C. With these functions we select that according to the step of the sequence */
