@@ -1,5 +1,5 @@
 // MOSFET pin tanımları
-
+int u;
 #define A_H 3   // Faz A üst MOSFET (PWM)
 #define A_L 2   // Faz A alt MOSFET
 #define B_H 9   // Faz B üst MOSFET (PWM)
