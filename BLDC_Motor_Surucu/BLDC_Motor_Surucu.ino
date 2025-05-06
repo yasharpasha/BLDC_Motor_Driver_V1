@@ -48,6 +48,10 @@ void setup() {
 void loop() {
   // Sürekli aynı yönde 6 adımlı komütasyon döngüsü
   step1();
+  if(analogRead(A1)>10){
+    step2();
+    
+  }
   delayMicroseconds(1);
   step2();
   delayMicroseconds(1);
