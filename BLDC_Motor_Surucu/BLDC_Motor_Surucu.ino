@@ -12,37 +12,9 @@
 #define BEMF_A 1      // A1 pin
 #define BEMF_B 2      // A2 pin
 #define BEMF_C 3      // A3 pin
-int pwmDuty = 50;     // PWM duty değeri (maks 255)
+int pwmDuty = 20;     // PWM duty değeri (maks 255)
 int currentStep = 1;  // Mevcut komütasyon adımı
-// Zero-cross interrupt handler
-ISR(ANALOG_COMP_vect) {
-  int lastStep = 0;
 
-  // Yeni bir sıfır geçiş tespit edildiğinde
-  if (currentStep != lastStep) {
-    lastStep = currentStep;
-    
-    // Mevcut adımda göre sonraki adımı seç
-    switch(currentStep) {
-      case 1: currentStep = 2; break;
-      case 2: currentStep = 3; break;
-      case 3: currentStep = 4; break;
-      case 4: currentStep = 5; break;
-      case 5: currentStep = 6; break;
-      case 6: currentStep = 1; break;
-    }
-    
-    // Yeni adıma geçiş yap
-    switch(currentStep) {
-      case 1: step1(); break;
-      case 2: step2(); break;
-      case 3: step3(); break;
-      case 4: step4(); break;
-      case 5: step5(); break;
-      case 6: step6(); break;
-    }
-  }
-}
 void setup() {
   // MOSFET pinlerini çıkış olarak ayarla
   DDRD |= (1 << PD3);  // D3 - A_H (OC2B)
@@ -70,23 +42,23 @@ void setup() {
   step1();
 
   // Global interrupt'leri etkinleştir
-  sei();
+  //sei();
 }
 
 void loop() {
   // Sürekli aynı yönde 6 adımlı komütasyon döngüsü
   step1();
-  _delay_ms(1);
+  delayMicroseconds(1);
   step2();
-  _delay_ms(1);
+  delayMicroseconds(1);
   step3();
-  _delay_ms(1);
+  delayMicroseconds(1);
   step4();
-  _delay_ms(1);
+  delayMicroseconds(1);
   step5();
-  _delay_ms(1);
+  delayMicroseconds(1);
   step6();
-  _delay_ms(1);
+  delayMicroseconds(1);
 }
 
 // Tüm MOSFET'leri kapatma fonksiyonu
@@ -117,7 +89,7 @@ void step2() {           // A+ C-
   PORTB &= ~(1 << PB0);  //digitalWrite(B_L, LOW);
   OCR1A = 0;             //analogWrite(B_H, 0);
   OCR1B = 0;             //analogWrite(C_H, 0);
-  BEMF_B_RISING();
+  
 }
 
 void step3() {  // B+ C-
@@ -127,7 +99,6 @@ void step3() {  // B+ C-
   PORTB |= (1 << PB0);
   OCR2B = 0;
   OCR1B = 0;
-  BEMF_B_FALLING();
   
 }
 
@@ -138,7 +109,7 @@ void step4() {           // B+ A-
   PORTB &= ~(1 << PB4);  //digitalWrite(C_L, LOW);
   OCR2B = 0;             //analogWrite(A_H, 0);
   OCR1B = 0;             //analogWrite(C_H, 0);
-  BEMF_C_RISING();
+  
 }
 
 void step5() {           // C+ A-
@@ -148,7 +119,7 @@ void step5() {           // C+ A-
   PORTB |= (1 << PB4);   //digitalWrite(C_L, HIGH);
   OCR2B = 0;             //analogWrite(A_H, 0);
   OCR1A = 0;             //analogWrite(B_H, 0);
-  BEMF_C_FALLING();
+  
 }
 
 void step6() {           // C+ B-
@@ -158,7 +129,7 @@ void step6() {           // C+ B-
   PORTB |= (1 << PB4);   //digitalWrite(C_L, HIGH);
   OCR2B = 0;             //analogWrite(A_H, 0);
   OCR1A = 0;             //analogWrite(B_H, 0);
-  BEMF_A_FALLING();
+  
 }
 /* On each step we know that the next 0 cross will be rising or falling and if it will be
    on coil A, B or C. With these functions we select that according to the step of the sequence */
@@ -203,3 +174,36 @@ void BEMF_C_FALLING() {
   ADMUX = 1;             // Changed: select A1 as comparator negative input (was A0)
   ACSR &= ~0x01;         // Set interrupt on falling edge
 }
+
+
+//notes
+/*
+ISR(ANALOG_COMP_vect) {
+  int lastStep = 0;
+
+  // Yeni bir sıfır geçiş tespit edildiğinde
+  if (currentStep != lastStep) {
+    lastStep = currentStep;
+
+    // Mevcut adımda göre sonraki adımı seç
+    switch (currentStep) {
+      case 1: currentStep = 2; break;
+      case 2: currentStep = 3; break;
+      case 3: currentStep = 4; break;
+      case 4: currentStep = 5; break;
+      case 5: currentStep = 6; break;
+      case 6: currentStep = 1; break;
+    }
+
+    // Yeni adıma geçiş yap
+    switch (currentStep) {
+      case 1: step1(); break;
+      case 2: step2(); break;
+      case 3: step3(); break;
+      case 4: step4(); break;
+      case 5: step5(); break;
+      case 6: step6(); break;
+    }
+  }
+}
+*/
